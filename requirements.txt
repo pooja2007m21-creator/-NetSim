@@ -1,0 +1,12 @@
+# NetSim – Interactive Computer Network Topology Simulator
+# Core Web Framework
+Flask>=3.0.0
+Werkzeug>=3.0.0
+
+# Testing
+pytest>=8.0.0
+
+# Production WSGI Servers
+# Use Waitress on Windows, Gunicorn on Linux/macOS
+waitress>=3.0.0; sys_platform == 'win32'
+gunicorn>=21.2.0; sys_platform != 'win32'

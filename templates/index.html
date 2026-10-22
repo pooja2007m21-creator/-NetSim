@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NetSim – Interactive Computer Network Topology Simulator</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232563eb'><path d='M12 2a10 10 0 1010 10A10 10 0 0012 2zm1 14.93V17a1 1 0 01-2 0v-.07A8 8 0 014.07 11H5a1 1 0 010-2h-.93A8 8 0 0111 2.07V3a1 1 0 012 0v-.93A8 8 0 0119.93 9H19a1 1 0 010 2h.93A8 8 0 0113 16.93z'/></svg>">
+</head>
+<body>
+
+  <!-- ======================================================================
+       Header Component
+       ====================================================================== -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="brand-icon-wrapper">
+        <svg class="brand-icon" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M12 2v7m0 6v7M2 12h7m6 0h7"></path>
+          <circle cx="12" cy="2" r="2"></circle>
+          <circle cx="12" cy="22" r="2"></circle>
+          <circle cx="2" cy="12" r="2"></circle>
+          <circle cx="22" cy="12" r="2"></circle>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>NetSim <span class="brand-tag">v1.0 • Academic Edition</span></h1>
+        <p>Interactive Computer Network Topology Simulator</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <!-- Live Server Health Status -->
+      <div class="server-status-pill" id="server-status-pill" title="Backend Flask REST API Status">
+        <span class="status-dot pulse" id="server-status-dot"></span>
+        <span id="server-status-label">Connecting...</span>
+      </div>
+
+      <!-- Quick Action: Learning & About -->
+      <button class="btn-action" id="btn-open-help" style="padding: 7px 12px; font-size: 0.75rem; width: auto;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3m0 4h.01"></path>
+        </svg>
+        Learning Guide & About
+      </button>
+    </div>
+  </header>
+
+  <!-- ======================================================================
+       Dashboard Main Application Container
+       ====================================================================== -->
+  <main class="app-container">
+
+    <!-- ====================================================================
+         Left Sidebar / Control Panel
+         ==================================================================== -->
+    <aside class="app-sidebar">
+      
+      <!-- Network Device Palette -->
+      <div class="sidebar-section">
+        <div class="sidebar-heading">
+          <span>Add Devices</span>
+          <span style="font-size: 0.65rem; color: var(--text-muted);">Click to place</span>
+        </div>
+        <div class="device-palette">
+          <button class="palette-item" id="btn-add-pc">
+            <div class="icon-badge pc">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+            </div>
+            <div class="item-meta">
+              <span class="item-title">Computer / Host</span>
+              <span class="item-desc">End system / Workstation</span>
+            </div>
+          </button>
+
+          <button class="palette-item" id="btn-add-switch">
+            <div class="icon-badge switch">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="5" width="20" height="14" rx="2"/>
+                <line x1="6" y1="12" x2="18" y2="12"/>
+              </svg>
+            </div>
+            <div class="item-meta">
+              <span class="item-title">Network Switch</span>
+              <span class="item-desc">Layer 2 packet forwarder</span>
+            </div>
+          </button>
+
+          <button class="palette-item" id="btn-add-router">
+            <div class="icon-badge router">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="9"/>
+                <line x1="12" y1="8" x2="12" y2="16"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+              </svg>
+            </div>
+            <div class="item-meta">
+              <span class="item-title">Router</span>
+              <span class="item-desc">Layer 3 gateway router</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Interaction Mode Tools -->
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Tools & Modes</div>
+        <div class="mode-tools-grid">
+          <button class="btn-tool active" id="tool-select">
+            <svg viewBox="0 0 24 24"><path d="M3 3l7 18 3-7 7-3L3 3z"></path></svg>
+            Select & Move
+          </button>
+          <button class="btn-tool" id="tool-connect">
+            <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"></path></svg>
+            Connect Cable
+          </button>
+          <button class="btn-tool" id="tool-delete" style="grid-column: span 2;">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>
+            Delete Tool (Click Item)
+          </button>
+        </div>
+
+        <!-- History Undo / Redo -->
+        <div class="history-controls">
+          <button class="btn-history" id="btn-undo" title="Undo (Ctrl+Z)" disabled>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"></path></svg>
+            Undo
+          </button>
+          <button class="btn-history" id="btn-redo" title="Redo (Ctrl+Y)" disabled>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7v6h-6"></path><path d="M3 17a9 9 0 019-9 9 9 0 016 2.3L21 13"></path></svg>
+            Redo
+          </button>
+        </div>
+      </div>
+
+      <!-- Presets Section -->
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Topology Presets</div>
+        <div class="preset-grid">
+          <button class="btn-preset" data-preset="star">★ Star</button>
+          <button class="btn-preset" data-preset="bus">━ Bus</button>
+          <button class="btn-preset" data-preset="ring">◯ Ring</button>
+          <button class="btn-preset" data-preset="mesh">⛶ Mesh</button>
+          <button class="btn-preset" data-preset="tree">⑂ Tree</button>
+          <button class="btn-preset" data-preset="custom">Custom</button>
+        </div>
+      </div>
+
+      <!-- File & Storage Actions -->
+      <div class="sidebar-section" style="border-bottom: none; margin-top: auto;">
+        <div class="sidebar-heading">Storage & Management</div>
+        <div class="storage-actions">
+          <button class="btn-action primary" id="btn-open-save-modal">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+            Save Topology
+          </button>
+          <button class="btn-action" id="btn-open-load-modal">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"></path></svg>
+            Saved Topologies
+          </button>
+          <div style="display: flex; gap: 6px;">
+            <button class="btn-action" id="btn-export-json" title="Download JSON file">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Export
+            </button>
+            <button class="btn-action" id="btn-import-json" title="Upload JSON file">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              Import
+            </button>
+          </div>
+          <button class="btn-action danger" id="btn-clear-canvas">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            Clear Canvas
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ====================================================================
+         Center Network Canvas Workspace
+         ==================================================================== -->
+    <section class="canvas-wrapper">
+      
+      <!-- Floating Mode Indicator -->
+      <div class="floating-mode-indicator" id="mode-indicator">
+        <span class="mode-badge connect">Connect Cable</span>
+        <span>Click first device, then second device to link</span>
+      </div>
+
+      <!-- Main Interactive SVG Canvas -->
+      <svg id="network-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+
+      <!-- Canvas Empty State -->
+      <div class="canvas-empty-state" id="canvas-empty-state">
+        <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M12 2v7m0 6v7M2 12h7m6 0h7"></path>
+          <circle cx="12" cy="2" r="2"></circle>
+          <circle cx="12" cy="22" r="2"></circle>
+          <circle cx="2" cy="12" r="2"></circle>
+          <circle cx="22" cy="12" r="2"></circle>
+        </svg>
+        <h3>Your Network Canvas is Empty</h3>
+        <p>Start engineering your network by adding devices from the left toolbar or load a standard educational preset topology.</p>
+        <div class="empty-state-quick-actions">
+          <button class="btn-action primary" id="empty-load-star">Load Star Preset</button>
+          <button class="btn-action" id="empty-add-pc">Add Computer</button>
+        </div>
+      </div>
+
+      <!-- Canvas Floating Zoom Controls -->
+      <div class="canvas-floating-controls">
+        <button class="canvas-control-btn" id="btn-zoom-out" title="Zoom Out (-)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+        <span class="zoom-level-text" id="zoom-level-label">100%</span>
+        <button class="canvas-control-btn" id="btn-zoom-in" title="Zoom In (+)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+        <button class="canvas-control-btn" id="btn-zoom-reset" title="Reset Zoom (100%)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        </button>
+        <button class="canvas-control-btn" id="btn-zoom-fit" title="Fit to Viewport">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"></path></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         Right Inspector & Control Panel
+         ==================================================================== -->
+    <aside class="app-inspector">
+      
+      <!-- Inspector Tabs -->
+      <nav class="inspector-tabs">
+        <button class="tab-btn active" data-tab="inspector">Inspector</button>
+        <button class="tab-btn" data-tab="algorithms">Algorithms</button>
+        <button class="tab-btn" data-tab="stats">Statistics</button>
+        <button class="tab-btn" data-tab="activity">Activity</button>
+        <button class="tab-btn" data-tab="theory">Theory</button>
+      </nav>
+
+      <!-- TAB 1: INSPECTOR -->
+      <div class="tab-content active" id="tab-content-inspector">
+        
+        <!-- Empty Selection Banner -->
+        <div id="inspector-empty-state" class="info-card" style="text-align: center; color: var(--text-muted); padding: 30px 16px;">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 8px; opacity: 0.5;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <p style="font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">No Element Selected</p>
+          <p style="font-size: 0.75rem;">Click any device node or connection cable on the canvas to inspect its network properties.</p>
+        </div>
+
+        <!-- Selected Device Details Card -->
+        <div id="selected-device-card" class="info-card" style="display: none;">
+          <div class="info-card-header">
+            <span class="info-card-title">
+              <span class="badge-status connected" id="insp-device-type">Computer</span>
+              Device Details
+            </span>
+            <button class="btn-action danger" id="btn-insp-delete-device" style="padding: 4px 8px; font-size: 0.7rem; width: auto;">
+              Delete
+            </button>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="insp-device-name-input">Device Name / Hostname</label>
+            <div style="display: flex; gap: 6px;">
+              <input type="text" class="form-input" id="insp-device-name-input" maxlength="64">
+              <button class="btn-action primary" id="btn-insp-rename" style="padding: 6px 10px; font-size: 0.75rem; width: auto;">Rename</button>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.75rem; margin-top: 10px; background: var(--bg-main); padding: 10px; border-radius: var(--radius-sm);">
+            <div>
+              <span style="color: var(--text-muted); display: block;">Coordinates:</span>
+              <strong id="insp-device-coords">(0, 0)</strong>
+            </div>
+            <div>
+              <span style="color: var(--text-muted); display: block;">Degree (Links):</span>
+              <strong id="insp-device-degree">0</strong>
+            </div>
+          </div>
+
+          <div style="margin-top: 10px; font-size: 0.75rem;">
+            <span style="color: var(--text-muted); display: block; margin-bottom: 2px;">Connected Neighbors:</span>
+            <span id="insp-device-neighbors" style="color: var(--text-secondary); font-family: var(--font-mono);">None</span>
+          </div>
+        </div>
+
+        <!-- Selected Connection Details Card -->
+        <div id="selected-connection-card" class="info-card" style="display: none;">
+          <div class="info-card-header">
+            <span class="info-card-title">Network Link Details</span>
+            <button class="btn-action danger" id="btn-insp-delete-conn" style="padding: 4px 8px; font-size: 0.7rem; width: auto;">Delete Link</button>
+          </div>
+          <div style="font-size: 0.8rem; margin-bottom: 8px;">
+            <span style="color: var(--text-muted);">Endpoints:</span>
+            <strong id="insp-conn-endpoints" style="display: block; margin-top: 2px;"></strong>
+          </div>
+          <div style="font-size: 0.8rem;">
+            <span style="color: var(--text-muted);">Link Status:</span>
+            <span class="badge-status connected" id="insp-conn-status">Active</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TAB 2: ALGORITHMS -->
+      <div class="tab-content" id="tab-content-algorithms">
+        
+        <!-- Shortest Path Calculation Tool (BFS) -->
+        <div class="info-card">
+          <div class="info-card-header">
+            <span class="info-card-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary-blue)" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+              Shortest Path Routing
+            </span>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 12px;">
+            Computes the minimal-hop unweighted routing path between two end systems using Breadth-First Search (BFS).
+          </p>
+
+          <div class="form-group">
+            <label class="form-label" for="shortest-src-select">Source Host / Gateway</label>
+            <select class="form-select" id="shortest-src-select"></select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="shortest-tgt-select">Destination Host / Gateway</label>
+            <select class="form-select" id="shortest-tgt-select"></select>
+          </div>
+
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-action primary" id="btn-run-shortest-path">Calculate Path</button>
+            <button class="btn-action" id="btn-clear-path-highlight" style="width: auto;">Clear</button>
+          </div>
+
+          <!-- Path Results Box -->
+          <div id="path-results-box" style="display: none; margin-top: 14px; padding: 12px; background: var(--bg-main); border-radius: var(--radius-sm); border: 1px solid var(--border-light); font-size: 0.8rem;">
+            <div id="path-status-text" style="margin-bottom: 6px;"></div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Route Traversed:</div>
+            <div id="path-route-text" style="font-family: var(--font-mono); font-weight: 600; color: var(--primary-blue); word-break: break-all; margin-bottom: 8px;"></div>
+            <div id="path-explanation-text" style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.45;"></div>
+          </div>
+        </div>
+
+        <!-- Breadth-First Search Reachability Discovery -->
+        <div class="info-card">
+          <div class="info-card-header">
+            <span class="info-card-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-emerald)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+              BFS Reachability Discovery
+            </span>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 12px;">
+            Traverses the network radially layer by layer from a starting device to identify all reachable hosts and detect isolated network partitions.
+          </p>
+
+          <div class="form-group">
+            <label class="form-label" for="bfs-start-select">Starting Device</label>
+            <select class="form-select" id="bfs-start-select"></select>
+          </div>
+
+          <button class="btn-action" id="btn-run-bfs">Run BFS Discovery</button>
+
+          <!-- BFS Results Box -->
+          <div id="bfs-results-box" style="display: none; margin-top: 14px; padding: 12px; background: var(--bg-main); border-radius: var(--radius-sm); border: 1px solid var(--border-light); font-size: 0.8rem;">
+            <div id="bfs-reachable-count" style="font-weight: 700; color: var(--accent-emerald); margin-bottom: 6px;"></div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">Traversal Discovery Order:</div>
+            <div id="bfs-order-text" style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-secondary); line-height: 1.5;"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TAB 3: STATISTICS -->
+      <div class="tab-content" id="tab-content-stats">
+        
+        <!-- Key Performance Indicators -->
+        <div class="stats-kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-title">Total Devices</span>
+            <span class="kpi-value" id="stat-total-devices">0</span>
+            <span class="kpi-subtitle" id="stat-device-breakdown">0 PCs, 0 SW, 0 R</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-title">Total Connections</span>
+            <span class="kpi-value" id="stat-total-connections">0</span>
+            <span class="kpi-subtitle">Physical / Logical Links</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-title">Components</span>
+            <span class="kpi-value" id="stat-components-count">0</span>
+            <span class="kpi-subtitle">Sub-network partitions</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-title">Graph Density</span>
+            <span class="kpi-value" id="stat-density">0%</span>
+            <span class="kpi-subtitle">Avg Deg: <strong id="stat-avg-degree">0</strong></span>
+          </div>
+        </div>
+
+        <!-- Overall Connectivity Status Card -->
+        <div class="info-card">
+          <div class="info-card-header">
+            <span class="info-card-title">Network Connectivity State</span>
+            <span class="badge-status connected" id="stat-connectivity-badge">Fully Connected</span>
+          </div>
+          <p id="stat-connectivity-explanation" style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.45;">
+            Calculated in real-time by the Python graph analytics backend.
+          </p>
+        </div>
+
+        <!-- Isolated Devices Warning -->
+        <div class="info-card" id="stat-isolated-card" style="display: none; border-left: 3px solid var(--accent-amber);">
+          <div class="info-card-title" style="color: var(--accent-amber);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            Isolated Devices Detected
+          </div>
+          <p id="stat-isolated-list" style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px;"></p>
+        </div>
+
+        <!-- Academic Insights -->
+        <div class="info-card">
+          <div class="info-card-title">Academic Insights & Topology Notes</div>
+          <ul id="stat-insights-list" style="margin-top: 8px; padding-left: 18px; font-size: 0.75rem; color: var(--text-secondary); line-height: 1.55;">
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- TAB 4: ACTIVITY LOG -->
+      <div class="tab-content" id="tab-content-activity">
+        <div class="info-card">
+          <div class="info-card-header">
+            <span class="info-card-title">System Event Audit Log</span>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px;">
+            Chronological audit stream recording user interactions, canvas modifications, and API analytics events.
+          </p>
+          <div class="activity-stream" id="activity-log-stream"></div>
+        </div>
+      </div>
+
+      <!-- TAB 5: THEORY & LEARNING GUIDE -->
+      <div class="tab-content" id="tab-content-theory">
+        <div class="info-card" style="margin-bottom: 10px;">
+          <div class="info-card-title">Educational Learning Modules</div>
+          <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">
+            Core concepts in Computer Networks (CSE Curriculum, OSI Model, and Graph Theory).
+          </p>
+        </div>
+
+        <div class="theory-accordion">
+          
+          <div class="theory-item">
+            <div class="theory-header">
+              <span>1. Host / Workstation (End System)</span>
+              <span>▼</span>
+            </div>
+            <div class="theory-body">
+              A computer or workstation functions as an end-system device that originates and terminates network communication traffic. In the TCP/IP model, hosts execute application protocols (HTTP, DNS, FTP) and manage transport sockets (TCP/UDP).
+            </div>
+          </div>
+
+          <div class="theory-item">
+            <div class="theory-header">
+              <span>2. Network Switch (Layer 2)</span>
+              <span>▼</span>
+            </div>
+            <div class="theory-body">
+              A switch is a Layer 2 (Data Link layer) multiport bridge that forwards Ethernet frames based on hardware MAC addresses stored in its Forwarding Information Base (FIB / MAC Address Table). Each switch port constitutes an isolated collision domain, significantly increasing network throughput.
+            </div>
+          </div>
+
+          <div class="theory-item">
+            <div class="theory-header">
+              <span>3. Router (Layer 3 Gateway)</span>
+              <span>▼</span>
+            </div>
+            <div class="theory-body">
+              A router operates at Layer 3 (Network layer) of the OSI model. Routers inspect destination IP addresses and make packet-forwarding decisions across disparate subnets and Wide Area Networks (WANs). Routers terminate broadcast domains and enforce network segmentation.
+            </div>
+          </div>
+
+          <div class="theory-item">
+            <div class="theory-header">
+              <span>4. Physical vs Logical Topology</span>
+              <span>▼</span>
+            </div>
+            <div class="theory-body">
+              <strong>Physical Topology</strong> refers to the tangible geometric layout and physical cabling connecting devices.<br><br>
+              <strong>Logical Topology</strong> defines how data frames or packets actually travel across the physical medium (e.g., Ethernet IEEE 802.3 broadcast logic).
+            </div>
+          </div>
+
+          <div class="theory-item">
+            <div class="theory-header">
+              <span>5. Graph Algorithms: BFS & Routing</span>
+              <span>▼</span>
+            </div>
+            <div class="theory-body">
+              Network topologies are modeled mathematically as undirected graphs \(G = (V, E)\) where \(V\) represents devices and \(E\) represents physical links.<br><br>
+              <strong>Breadth-First Search (BFS)</strong> systematically explores nodes in order of hop distance, producing the minimum-hop path in an unweighted graph in \(O(V + E)\) time. In real networks, protocols like RIP use hop count, while OSPF uses Dijkstra's weighted shortest path.
+            </div>
+          </div>
+
+          <div class="theory-item">
+            <div class="theory-header">
+              <span>6. Educational Modeling Disclaimer</span>
+              <span>▼</span>
+            </div>
+            <div class="theory-body">
+              <div class="callout callout-warning">
+                <strong>Academic Notice:</strong> NetSim is an educational graph-theoretical simulator for topology structure, connectivity, and shortest-path visualization. It does not emulate physical Ethernet collision physics, real-time packet queueing, or hardware bit transmission.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- ======================================================================
+       Modals
+       ====================================================================== -->
+
+  <!-- Modal 1: Save Topology -->
+  <div class="modal-backdrop" id="modal-save">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Save Topology to SQLite</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="save-topology-name">Topology Name *</label>
+          <input type="text" class="form-input" id="save-topology-name" placeholder="e.g. Computer Science Lab LAN" maxlength="100">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="save-topology-desc">Description (Optional)</label>
+          <textarea class="form-input" id="save-topology-desc" rows="3" placeholder="Brief notes on topology structure..." maxlength="500"></textarea>
+        </div>
+        <div class="callout callout-info">
+          The topology structure, node coordinates, and link definitions will be safely persisted in SQLite and can be reloaded across server restarts.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-action btn-modal-cancel" style="width: auto;">Cancel</button>
+        <button class="btn-action primary" id="btn-save-confirm" style="width: auto;">Save to Database</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Saved Topologies List -->
+  <div class="modal-backdrop" id="modal-load">
+    <div class="modal-dialog" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Saved Network Topologies</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body" id="saved-topologies-list">
+        <!-- Injected via JavaScript -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn-action btn-modal-cancel" style="width: auto;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Clear Canvas Confirmation -->
+  <div class="modal-backdrop" id="modal-clear">
+    <div class="modal-dialog" style="max-width: 420px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="color: var(--accent-rose);">Clear Workspace?</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to remove all devices and cables from the canvas? Any unsaved edits will be lost. (You can also Undo afterwards if needed).
+      </div>
+      <div class="modal-footer">
+        <button class="btn-action btn-modal-cancel" style="width: auto;">Cancel</button>
+        <button class="btn-action danger" id="btn-clear-confirm" style="width: auto;">Clear Everything</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Learning Center & About -->
+  <div class="modal-backdrop" id="modal-help">
+    <div class="modal-dialog" style="max-width: 620px;">
+      <div class="modal-header">
+        <h3 class="modal-title">About NetSim – Educational Network Topology Simulator</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 12px; line-height: 1.6;">
+          <strong>NetSim</strong> is a full-stack educational web application designed for Computer Science & Engineering students to master computer network topologies, graph theoretical models, and connectivity analysis.
+        </p>
+
+        <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--navy-900); margin: 12px 0 6px;">Keyboard Shortcuts</h4>
+        <ul style="padding-left: 20px; font-size: 0.8rem; line-height: 1.6; margin-bottom: 14px;">
+          <li><kbd>Delete</kbd> / <kbd>Backspace</kbd>: Delete selected device or connection</li>
+          <li><kbd>Ctrl</kbd> + <kbd>Z</kbd>: Undo previous action</li>
+          <li><kbd>Ctrl</kbd> + <kbd>Y</kbd>: Redo previous action</li>
+          <li><kbd>Escape</kbd>: Clear selection or cancel link connection mode</li>
+          <li><kbd>Mouse Wheel</kbd>: Smooth canvas zoom in / out</li>
+        </ul>
+
+        <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--navy-900); margin: 12px 0 6px;">System Architecture</h4>
+        <p style="font-size: 0.8rem; line-height: 1.5; color: var(--text-secondary);">
+          • <strong>Frontend:</strong> Modern HTML5, Responsive CSS3, Vanilla ES6+ JavaScript, Dynamic SVG visualization.<br>
+          • <strong>Backend:</strong> Python 3 Flask REST API with graph theory modules.<br>
+          • <strong>Database:</strong> SQLite with parameterized queries for persistent topology management.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-action primary btn-modal-cancel" style="width: auto;">Close Guide</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden File Input for JSON Import -->
+  <input type="file" id="file-import-input" accept=".json" style="display: none;">
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Application Scripts -->
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/topology.js"></script>
+  <script src="/static/js/canvas.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
